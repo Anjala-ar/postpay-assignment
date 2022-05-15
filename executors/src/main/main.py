@@ -102,6 +102,7 @@ def get_shop_id_count_paid_orders_90d(order_details):
             f"No Paid Orders in the last {Static.date_interval_paid_orders} days")
     return order_details
 
+
 # writes output data to path
 def write_data(out_data, path):
     out_data.to_csv(path)
@@ -113,4 +114,5 @@ if __name__ == '__main__':
     data = get_payment_status(data)
     data = get_orders_for_time_delta(data)
     data = get_shop_id_count_paid_orders_90d(data)
+
     write_data(data, static.output_path + '/' + static.out_table_name)
