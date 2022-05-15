@@ -103,6 +103,7 @@ def get_shop_id_count_paid_orders_90d(order_details):
     return order_details
 
 
+# writes output data to path
 def write_data(out_data, path):
     out_data.to_csv(path)
 
