@@ -4,6 +4,9 @@
 
 The latest order date in the given input is `2022-01-05`, and since the date difference is calculated based on current date(today), output columns like `orders_on_customer_id_7D` and `shop_id_count_paid_orders_90D` are going to be default I set
 
+#Setup Instructions
+Install libraries - pandas, numpy, datetime, warnings
+
 # Operation Instructions
 For this exercise, I decided to keep things simple and add the 3 columns  as requested. The input data seemed quite clean, and so I didn't add any data-cleaning functionalities.
 I have also added a write_data function which will save the data to your local.

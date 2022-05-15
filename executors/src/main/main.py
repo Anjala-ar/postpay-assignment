@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 from datetime import date
@@ -12,14 +14,15 @@ GetColumns : A class that holds all column values for the input data, and also a
 
 
 class Static:
+    here = Path(__file__).parent.parent.parent
     table_name = "interview_df.csv"
-    input_path = "executors/data/input_data"
+    input_path = str(here) + "/data/input_data"
 
     date_interval_num_orders = 7  # Tunable parameter, if we want to get the order details for any other time period
     date_interval_paid_orders = 90  # Tunable parameter, if we want to get the paid orders for any other time period
-    today = pd.to_datetime(date.today())  # Holds todays date
+    today = pd.to_datetime(date.today())  # Holds today's date
     out_table_name = f"customer_metrics_{today}.csv"
-    output_path = "executors/data/output_data"
+    output_path = str(here) + "/data/output_data"
 
     @property
     def get_table_name(self):

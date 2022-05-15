@@ -20,9 +20,6 @@ class MyTestCase(unittest.TestCase):
             }
     test_df = pd.DataFrame(data)
 
-    def test_something(self):
-        self.assertEqual(True, False)
-
     def test_get_payment_status(self):
         customer_data = get_payment_status(self.test_df)
         self.assertEqual(set(customer_data[customer_data.customer_id_has_paid == True]["customer_id"]), set("a"))
