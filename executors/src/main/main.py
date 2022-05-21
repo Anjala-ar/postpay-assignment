@@ -90,12 +90,17 @@ def get_payment_status(order_details):
 def get_shop_id_count_paid_orders_90d(order_details):
     order_details["if_paid"] = np.where(order_details["order_status"] == 'paid', 1, 0)
 
-    order_details = order_details.set_index("created_date").groupby(["shop_id"]).rolling("90D", closed="left").sum().reset_index().fillna(0)
-    order_details[GetColumns.shop_id_count_paid_orders_90D] = order_details.groupby(["shop_id", "created_date"])["if_paid"].transform('sum')
-
+    shop_id_count_paid_orders_90D = \
+        order_details.set_index("created_date").groupby(["shop_id"]).rolling("90D", closed="left") \
+            .sum().reset_index() \
+            .fillna(0)
+    order_details[GetColumns.shop_id_count_paid_orders_90D] = \
+        shop_id_count_paid_orders_90D.groupby(["shop_id", "created_date"])["if_paid"].transform('sum')
     order_details[GetColumns.shop_id_count_paid_orders_90D] = \
         order_details[GetColumns.shop_id_count_paid_orders_90D].fillna(
             f"No Paid Orders in the last {Static.date_interval_paid_orders} days")
+    order_details.drop(["if_paid"], axis=1, inplace=True)
+
     return order_details
 
 
