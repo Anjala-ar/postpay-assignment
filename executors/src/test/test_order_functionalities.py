@@ -26,11 +26,13 @@ class MyTestCase(unittest.TestCase):
 
     def test_get_orders_for_time_delta(self):
         customer_data = get_orders_for_time_delta(self.test_df)
-        self.assertEqual(set(customer_data[customer_data.customer_id == "a"]["order_for_7_days"]), {2.0})
+        self.assertEqual(set(customer_data[customer_data.customer_id == "a"]["order_for_7_days"]),
+                         {1.0,'No orders placed in the last 7D days'})
 
     def test_get_shop_id_count_paid_orders_90d(self):
         customer_data = get_shop_id_count_paid_orders_90d(self.test_df)
-        self.assertEqual(set(customer_data[customer_data.customer_id == "a"]["shop_id_count_paid_orders_90D"]), {2.0})
+        self.assertEqual(set(customer_data[customer_data.shop_id == "1002"]["shop_id_count_paid_orders_90D"]),
+                         {0, 1})
 
 
 if __name__ == '__main__':

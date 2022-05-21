@@ -18,8 +18,8 @@ class Static:
     table_name = "interview_df.csv"
     input_path = str(here) + "/data/input_data"
 
-    date_interval_num_orders = 7  # Tunable parameter, if we want to get the order details for any other time period
-    date_interval_paid_orders = 90  # Tunable parameter, if we want to get the paid orders for any other time period
+    date_interval_num_orders = "7D"  # Tunable parameter, if we want to get the order details for any other time period
+    date_interval_paid_orders = "90D"  # Tunable parameter, if we want to get the paid orders for any other time period
     today = pd.to_datetime(date.today())  # Holds today's date
     out_table_name = f"customer_metrics_{today}.csv"
     output_path = str(here) + "/data/output_data"
@@ -37,7 +37,7 @@ class Static:
         return self.location + "/" + self.get_table_name
 
     def get_order_details(self):
-        return pd.read_csv(self.get_path)
+        return pd.read_csv(self.get_path, parse_dates=[GetColumns.created_date])
 
 
 class GetColumns:
@@ -52,14 +52,8 @@ class GetColumns:
     shop_id_count_paid_orders_90D = "shop_id_count_paid_orders_90D"
 
 
-# Given a dataframe, converts the data column into a datetime object
-def date_string_to_date(order_details):
-    return pd.to_datetime(order_details[GetColumns.created_date])
-
-
 # helper function which helps filters data given a date interval
 def date_delta(order_details, interval):
-    order_details[GetColumns.created_date] = date_string_to_date(order_details)
     order_details["date_interval"] = [(Static.today - dt).days for dt in order_details[GetColumns.created_date]]
     return np.where(order_details["date_interval"] <= interval, True, False)
 
@@ -70,12 +64,11 @@ def date_delta(order_details, interval):
 # `No orders placed in the last 7 days`
 def get_orders_for_time_delta(order_details):
     order_details[GetColumns.order_for_7_days] = \
-        order_details[date_delta(order_details, Static.date_interval_num_orders)] \
-            .groupby([GetColumns.customer_id])[GetColumns.order_id].transform('count')
+        order_details.set_index(GetColumns.created_date).groupby(GetColumns.customer_id).rolling(
+            Static.date_interval_num_orders, closed="left").count().reset_index()[GetColumns.order_status]
     order_details[GetColumns.order_for_7_days] = \
         order_details[GetColumns.order_for_7_days].fillna(
             f"No orders placed in the last {Static.date_interval_num_orders} days")
-    order_details.drop(['date_interval'], axis=1, inplace=True)
     return order_details
 
 
@@ -92,14 +85,14 @@ def get_payment_status(order_details):
 
 # Returns a dataframe with the column <shop_id_count_paid_orders_90D>,
 # that represents the number of paid orders on shop id in the last 90 days
-# In case the customer doesnt any paid paid order in the given the interval, the column value defaults to
+# In case the shop_id doesnt any paid paid order in the given the interval, the column value defaults to
 # `No Paid Orders in the last 90 days`
 def get_shop_id_count_paid_orders_90d(order_details):
-    order_details["payment_status"] = np.where(order_details.order_status == 'paid', 1, 0)
-    order_details[GetColumns.shop_id_count_paid_orders_90D] = \
-        order_details[date_delta(order_details, Static.date_interval_paid_orders)].groupby([GetColumns.customer_id])[
-            "payment_status"].transform('sum')
-    order_details.drop(['date_interval', 'payment_status'], axis=1, inplace=True)
+    order_details["if_paid"] = np.where(order_details["order_status"] == 'paid', 1, 0)
+
+    order_details = order_details.set_index("created_date").groupby(["shop_id"]).rolling("90D", closed="left").sum().reset_index().fillna(0)
+    order_details[GetColumns.shop_id_count_paid_orders_90D] = order_details.groupby(["shop_id", "created_date"])["if_paid"].transform('sum')
+
     order_details[GetColumns.shop_id_count_paid_orders_90D] = \
         order_details[GetColumns.shop_id_count_paid_orders_90D].fillna(
             f"No Paid Orders in the last {Static.date_interval_paid_orders} days")
