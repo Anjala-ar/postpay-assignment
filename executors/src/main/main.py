@@ -75,9 +75,14 @@ def get_orders_for_time_delta(order_details):
 # Returns a dataframe with the column <customer_id_has_paid>,
 # a boolean value that represents if the customer has paid prior to this order
 def get_payment_status(order_details):
-    unpaid_customers = order_details.groupby(GetColumns.order_status)[GetColumns.customer_id].agg(set)[
-        ['due', 'unpaid']]
-    all_unpaid_customers = unpaid_customers[0].union(unpaid_customers[1])
+    exempt_current_orders = order_details.groupby(GetColumns.customer_id).first()[GetColumns.order_id]
+    prior_orders_paid = \
+        order_details[~order_details[GetColumns.order_id].isin(exempt_current_orders)].groupby(GetColumns.order_status)[
+            GetColumns.customer_id].agg(set).drop('paid')
+    try:
+        all_unpaid_customers = prior_orders_paid[0].union(prior_orders_paid[1])
+    except:
+        all_unpaid_customers = prior_orders_paid[0]
     order_details[GetColumns.customer_id_has_paid] = [customer_id not in all_unpaid_customers for customer_id in
                                                       order_details[GetColumns.customer_id]]
     return order_details

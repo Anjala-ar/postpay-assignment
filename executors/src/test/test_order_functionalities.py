@@ -20,14 +20,26 @@ class MyTestCase(unittest.TestCase):
             }
     test_df = pd.DataFrame(data)
 
+    test_data = pd.DataFrame({'order_id': ["1a", "2b", "3c", "4d", "5e"],
+                              'customer_id': ["1z", "2y", "3x", "1z", "2y"],
+                              'created_date': [pd.to_datetime('2022-03-02'), pd.to_datetime('2022-03-05'),
+                                               pd.to_datetime('2022-03-05'), pd.to_datetime('2022-05-06'),
+                                               pd.to_datetime('2021-10-04')],
+                              'order_amount': [10, 11, 12, 13, 14],
+                              'shop_id': ["a", "a", "b", "c", "d"],
+                              'order_status': ["paid", "paid", "unpaid", "due", "paid"]
+
+                              }
+                             )
+
     def test_get_payment_status(self):
         customer_data = get_payment_status(self.test_df)
-        self.assertEqual(set(customer_data[customer_data.customer_id_has_paid == True]["customer_id"]), set("a"))
+        self.assertEqual(set(customer_data[customer_data.customer_id_has_paid == True]["customer_id"]), {"a","f"})
 
     def test_get_orders_for_time_delta(self):
         customer_data = get_orders_for_time_delta(self.test_df)
         self.assertEqual(set(customer_data[customer_data.customer_id == "a"]["order_for_7_days"]),
-                         {1.0,'No orders placed in the last 7D days'})
+                         {1.0, 'No orders placed in the last 7D days'})
 
     def test_get_shop_id_count_paid_orders_90d(self):
         customer_data = get_shop_id_count_paid_orders_90d(self.test_df)
